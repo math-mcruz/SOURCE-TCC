@@ -10,8 +10,8 @@ e22475691524ef72a92ee77f7040233e098ab1b9 (27/09/2023).
 Foi aproveitado apenas o diretório src/base.
 
 ## Estrutura
-- DATABASE/ORIGINAL: cópia original do src/base, sem alterações.
-- DATABASE/ALTERADO: cópia de experimento, modificada para o estudo.
+- DATASET/ORIGINAL: cópia original do src/base, sem alterações.
+- DATASET/ALTERADO: cópia de experimento, modificada para o estudo.
 
 ## Licença
 Eclipse Public License 2.0 (arquivo LICENSE).
