@@ -233,10 +233,10 @@ def montar_planilha(pares, programas, destino: Path):
         ("Gabarito (ground-truth): pares candidatos de comentário e código", None),
         ("", None),
         ("Origem", "Programas da CBSA na pasta ORIGINAL do repositório da base de dados (commit e22475691524ef72a92ee77f7040233e098ab1b9, ijmitch/cics-banking-sample-application-cbsa). Números de linha referem-se aos arquivos do ORIGINAL."),
-        ("Como foi gerado", "Extração automática (script extrair_pares_gabarito.py). Cada bloco de comentário da PROCEDURE DIVISION é pareado ao código que o segue, até o próximo comentário (limite de %d linhas por trecho)." % LIMITE_LINHAS),
-        ("Filtro (E4, seção 1.3)", "Retido: trecho com IF, EVALUATE ou WHEN, ou com tratamento de falha (ABEND, SQLCODE, HANDLE, DFHRESP, EIBRESP, EIBRCODE). Os demais ficam na aba Descartados, para que o critério seja auditável."),
-        ("O que preencher", "Aba Candidatos, colunas J a M (fundo amarelo): Revisão discente, Revisão orientador, Regra atômica (redação final) e Observações. Na aba Descartados, coluna I."),
-        ("Valores da revisão", "Manter, Descartar ou Ajustar (lista suspensa). Em Descartados: Manter descartado ou Reincluir."),
+        ("Como foi gerado", "Extração automática (script extrair_pares_gabarito_adaptado.py). Cada bloco de comentário da PROCEDURE DIVISION é pareado ao código que o segue, até o próximo comentário (limite de %d linhas por trecho)." % LIMITE_LINHAS),
+        ("Filtro (E4, seção 1.3)", "Retido: trecho com IF, EVALUATE ou WHEN, ou com tratamento de falha (ABEND, SQLCODE, HANDLE, DFHRESP, EIBRESP, EIBRCODE). O filtro é sintático: trechos de infraestrutura pura (rollback, ABEND de DB2/VSAM, storm drain) também aparecem aqui, porque contêm essas palavras-chave — a exclusão semântica é feita na revisão manual (coluna Categoria), não pelo script. Os demais (sem decisão nem falha) ficam na aba Descartados, para que o critério seja auditável."),
+        ("O que preencher", "Aba Candidatos, colunas J a M (fundo amarelo): Regra de negócio extraída, Categoria, Status e Observação — mesmas colunas usadas na revisão manual do DBCRFUN. Na aba Descartados, coluna I."),
+        ("Valores da revisão", "Categoria: regra de negócio, infraestrutura (excluída) ou a discutir (lista suspensa). Status: A validar ou Validado. Em Descartados: Manter descartado ou Reincluir."),
         ("Alertas", "possível código desativado: o comentário parece uma instrução COBOL comentada. comentário curto: até 3 palavras. trecho truncado: o código do par passa do limite de linhas; conferir o restante no fonte. comentários adjacentes fundidos: o bloco seguinte de comentário foi unido porque o trecho entre eles não tinha código ativo. comentário menciona condição (aba Descartados): o comentário descreve uma condição, mas o trecho seguinte é só ação; a decisão pode estar antes no fonte."),
         ("Limitações", "A triagem é heurística e não substitui a revisão dupla. Comentários de cabeçalho (antes da PROCEDURE DIVISION) não entram. Linhas de depuração (indicador D) aparecem com o prefixo [D]. O tipo (Decisão, Falha, Decisão e falha) é atribuído ao trecho inteiro, não ao comentário isolado."),
         ("", None),
@@ -255,10 +255,11 @@ def montar_planilha(pares, programas, destino: Path):
     titulos = [
         "Programa", "Blocos com texto", "Candidatos retidos", "Descartados",
         "Decisão", "Falha", "Decisão e falha", "Com alertas",
-        "Manter (discente)", "Descartar (discente)", "Ajustar (discente)", "Pendentes (discente)",
+        "Regra de negócio", "Infraestrutura (excluída)", "A discutir", "Validados", "Pendentes",
     ]
-    cabecalho(rs, titulos, [14, 12, 12, 12, 10, 10, 12, 11, 12, 12, 12, 12])
+    cabecalho(rs, titulos, [14, 12, 12, 12, 10, 10, 12, 11, 13, 16, 11, 11, 11])
     rs.freeze_panes = "B2"
+    letra_validados = rs.cell(row=1, column=12).column_letter
     for r, prog in enumerate(programas, start=2):
         rs.cell(row=r, column=1, value=prog)
         rs.cell(row=r, column=2, value=f"=C{r}+D{r}")
@@ -267,9 +268,10 @@ def montar_planilha(pares, programas, destino: Path):
         for col, tipo in ((5, "Decisão"), (6, "Falha"), (7, "Decisão e falha")):
             rs.cell(row=r, column=col, value=f'=COUNTIFS(Candidatos!$B:$B,$A{r},Candidatos!$G:$G,"{tipo}")')
         rs.cell(row=r, column=8, value=f'=COUNTIFS(Candidatos!$B:$B,$A{r},Candidatos!$I:$I,"<>")')
-        for col, val in ((9, "Manter"), (10, "Descartar"), (11, "Ajustar")):
-            rs.cell(row=r, column=col, value=f'=COUNTIFS(Candidatos!$B:$B,$A{r},Candidatos!$J:$J,"{val}")')
-        rs.cell(row=r, column=12, value=f"=C{r}-I{r}-J{r}-K{r}")
+        for col, val in ((9, "regra de negócio"), (10, "infraestrutura (excluída)"), (11, "a discutir")):
+            rs.cell(row=r, column=col, value=f'=COUNTIFS(Candidatos!$B:$B,$A{r},Candidatos!$K:$K,"{val}")')
+        rs.cell(row=r, column=12, value=f'=COUNTIFS(Candidatos!$B:$B,$A{r},Candidatos!$L:$L,"Validado")')
+        rs.cell(row=r, column=13, value=f"=C{r}-{letra_validados}{r}")
     total = len(programas) + 2
     rs.cell(row=total, column=1, value="TOTAL")
     for col in range(2, 13):
@@ -285,13 +287,13 @@ def montar_planilha(pares, programas, destino: Path):
     cabecalho(
         wc,
         ["ID", "Programa", "Linhas do comentário", "Linhas do código", "Comentário", "Trecho de código",
-         "Tipo", "Estruturas", "Alertas", "Revisão discente", "Revisão orientador",
-         "Regra atômica (redação final)", "Observações"],
-        [13, 10, 11, 11, 60, 72, 15, 15, 24, 13, 13, 50, 30],
+         "Tipo", "Estruturas", "Alertas", "Regra de negócio extraída", "Categoria",
+         "Status", "Observação"],
+        [13, 10, 11, 11, 60, 72, 15, 15, 24, 50, 20, 12, 30],
     )
     for r, p in enumerate(cand, start=2):
         vals = [p["id"], p["programa"], p["l_com"], p["l_cod"], p["comentario"], p["codigo"],
-                p["tipo"], p["estruturas"], p["alertas"], None, None, None, None]
+                p["tipo"], p["estruturas"], p["alertas"], None, None, "A validar", None]
         for c, v in enumerate(vals, start=1):
             cel = wc.cell(row=r, column=c, value=v)
             cel.font = F_CODIGO if c == 6 else F_NORMAL
@@ -300,9 +302,16 @@ def montar_planilha(pares, programas, destino: Path):
                 cel.fill = PREENCHE_ENTRADA
     if cand:
         ultima = len(cand) + 1
-        dv = DataValidation(type="list", formula1='"Manter,Descartar,Ajustar"', allow_blank=True)
-        wc.add_data_validation(dv)
-        dv.add(f"J2:K{ultima}")
+        dv_cat = DataValidation(
+            type="list",
+            formula1='"regra de negócio,infraestrutura (excluída),a discutir"',
+            allow_blank=True,
+        )
+        wc.add_data_validation(dv_cat)
+        dv_cat.add(f"K2:K{ultima}")
+        dv_status = DataValidation(type="list", formula1='"A validar,Validado"', allow_blank=True)
+        wc.add_data_validation(dv_status)
+        dv_status.add(f"L2:L{ultima}")
         wc.auto_filter.ref = f"A1:M{ultima}"
 
     # --- Descartados

@@ -1,0 +1,194 @@
+      ******************************************************************
+      *                                                                *
+      *  Copyright IBM Corp. 2023                                      *
+      *                                                                *
+      ******************************************************************
+      ******************************************************************
+      * This is the Transfer Funds between accounts program (in the
+      * same bank) in the BANKING application BMS suite.
+      *
+      ******************************************************************
+      *SOURCE-COMPUTER.   IBM-370 WITH DEBUGGING MODE.
+      *
+      * The end of session message
+      *
+      *
+      *       Is it the first time through? If so, send the map
+      *       with erased (empty) data fields.
+      *
+      *
+      *       If a PA key is pressed, just carry on
+      *
+      *
+      *       When Pf3 is pressed, return to the main menu
+      *
+      *
+      *       If the aid or Pf12 is pressed, then send a termination
+      *       message.
+      *
+      *
+      *       When CLEAR is pressed
+      *
+      *
+      *       When enter is pressed then process the content
+      *
+      *
+      *       When anything else happens, send the invalid key message
+      *
+      *           MOVE 10 TO CUSTNOL
+      *
+      *     Now RETURN
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Retrieve the data from the map
+      *
+      *
+      *    Validate the received data
+      *
+      *
+      *    If the data passes validation go on to
+      *    get an account
+      *
+      *
+      *    Output the data to the screen
+      *
+      *
+      *    Retrieve the data
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Perform validation on the incoming fields
+      *
+      *
+      *    Validate the Amount entered
+      *
+      *
+      *    Set up the fields required by XFRFUN then link to it to
+      *    get account information and perform the transfer, then
+      *    check what gets returned.
+      *
+      *
+      * Provide the correct Amount
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Map the returned data to the screen output fields
+      *
+      *
+      *    If an error was flagged by XFRFUN then set up an appropriate
+      *    error message.
+      *
+      *    Map the remaining fields
+      *
+      *
+      *    Send/show the MAP
+      *
+      *
+      *    If the map needs to have its data erased
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    If the map just needs a resend of only the data
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    If we have elected to send the map and a beep
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    Send the termination message
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Issue an abend
+      *
+      *
+      *    Validate the amount entered.
+      *    Is it greater than 0?
+      *
+      *
+      *       Is it a positive amount?
+      *
+      *
+      *    Check if it is numeric
+      *
+      *
+      *    We no longer support transferring negative amounts. Any -
+      *    sign is a deal breaker!
+      *
+      *
+      *    The idea here is that if there is a decimal point,
+      *    the field is not numeric. But if it is 1.1 then it is valid.
+      *    So first of all we check to see that only the above chars are
+      *    OK.
+      *    We DO NOT tolerate embedded spaces too.
+      *
+      *
+      *    Check to make sure we only have 0 to 1 decimal points
+      *
+      *
+      *    Check to see if we have too many decimals!
+      *
+      *
+      *             More than two of them are numeric
+      *
+      *
+      *    Fomate the date and time
+      *

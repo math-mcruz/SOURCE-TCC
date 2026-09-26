@@ -1,0 +1,342 @@
+      ******************************************************************
+      *                                                                *
+      *  Copyright IBM Corp. 2023                                      *
+      *                                                                *
+      ******************************************************************
+      ******************************************************************
+      * This program gets called when someone initiates a transfer
+      * of funds (perhaps) over the counter or via a web application.
+      *
+      * This program takes an incoming sortcode/account number (key)
+      * from the account where the money is transfered from and a
+      * sortcode/acount number (key) combination for the account where
+      * the money is being transferred to. Additionally, there will
+      * also be an incoming amount.
+      *
+      * This program needs to be able to cope with the data in any
+      * format. No checking is made on overdraft limits.
+      *
+      * If the transfer can be made successfully after looking up
+      * the account information then the account information will be
+      * updated and the PROCTRAN (Processed Transaction) datastore
+      * will be updated to record the successful transaction.
+      *
+      * If the transaction is a success, then the available balance
+      * and the actual balance for the account being debited and the
+      * account being credited will be returned.
+      *
+      * If the update to either the ACCOUNT or PROCTRAN datastore is
+      * unsuccessful, then the transaction is deemed to have failed.
+      *
+      * Should there be some kind of datastore failure or other
+      * unpredictable failure we should report it, back out any
+      * updates already made and abend the transaction.
+      *
+      *****************************************************************
+      *SOURCE-COMPUTER.   IBM-370 WITH DEBUGGING MODE.
+      * Get the ACCOUNT DB2 copybook
+      * ACCOUNT Host variables for DB2
+      * PROCTRAN DB2 copybook
+      * PROCTRAN host variables for DB2
+      * Pull in the SQL COMMAREA
+      *
+      * Pull in the input and output data structures
+      *
+      *
+      * Pull in the input and output data structures
+      *
+      * 01 DESIRED-ACC-KEY2.
+      *    03 DESIRED-SORT-CODE2         PIC 9(6).
+      *    03 DESIRED-ACC-NO2            PIC 9(8).
+      * 01 WS-REJ-COMBINED.
+      *    03 WS-REJ-COMBINED-SORT       PIC X(6).
+      *    03 WS-REJ-COMBINED-ACC        PIC X(8).
+      *
+      * 01 WS-PROC-COMBINED.
+      *    03 WS-PROC-COMBINED-SORT      PIC X(6).
+      *    03 WS-PROC-COMBINED-ACC       PIC X(8).
+      *
+      *    If the amount being transferred is negative, then
+      *    flag this as a failure and finish.
+      *
+      *
+      *
+      *    The COMMAREA values have now been set so all we need to do
+      *    is finish
+      *
+      *
+      *    Are we trying to transfer from and to the same account?
+      *    We don't allow that.
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *       If the FROM account number is less than the TO
+      *       account number
+      *
+      *
+      *       Update the FROM account
+      *
+      *
+      *       If the update was successful, update the TO account
+      *
+      *
+      *          If the update to the TO account was unsuccessful then
+      *          we need to flag it and roll it back
+      *
+      *
+      *                   Preserve the RESP and RESP2, then set up the
+      *                   standard ABEND info before getting the applid,
+      *                   date/time etc. and linking to the Abend
+      *                   Handler program.
+      *
+      *
+      *                   Get supplemental information
+      *
+      *
+      *                If the COMM-FLAG is anything else other than
+      *                2 then abend.
+      *
+      *
+      *          If the update to the FROM account was not successful
+      *          rollback.
+      *
+      *
+      *             If the ROLLback failed
+      *
+      *
+      *             Preserve the RESP and RESP2, then set up the
+      *             standard ABEND info before getting the applid,
+      *             date/time etc. and linking to the Abend Handler
+      *             program.
+      *
+      *
+      *             Get supplemental information
+      *
+      *
+      *       The FROM account number is greater than the TO
+      *       account number
+      *
+      *
+      *       Update the TO account number
+      *
+      *
+      *       If the update to the TO account was successful
+      *       then update the FROM account
+      *
+      *
+      *          Did the update to the FROM account work?
+      *
+      *
+      *                Preserve the RESP and RESP2, then set up the
+      *                standard ABEND info before getting the applid,
+      *                date/time etc. and linking to the Abend Handler
+      *                program.
+      *
+      *
+      *                Get supplemental information
+      *
+      *
+      *                If the FAIL code is something else
+      *
+      *
+      *                If that rollback didn't work
+      *
+      *
+      *                   Preserve the RESP and RESP2, then set up the
+      *                   standard ABEND info before getting the
+      *                   applid, date/time etc. and linking to the
+      *                   Abend Handler program.
+      *
+      *
+      *                   Get supplemental information
+      *
+      *
+      *          If the update to the TO account was NOT successful
+      *          & the fail code isn't = '2'
+      *
+      *
+      *             Preserve the RESP and RESP2, then set up the
+      *             standard ABEND info before getting the applid,
+      *             date/time etc. and linking to the Abend Handler
+      *             program.
+      *
+      *
+      *             Get supplemental information
+      *
+      *
+      *                Preserve the RESP and RESP2, then set up the
+      *                standard ABEND info before getting the applid,
+      *                date/time etc. and linking to the Abend Handler
+      *                program.
+      *
+      *
+      *                Get supplemental information
+      *
+      *
+      *    If the updates to the TO and FROM accounts were successful
+      *    then we need to write to PROCTRAN (processed transaction)
+      *    to record the successful transfer.
+      *
+      *
+      *    Position ourself at the matching FROM account record
+      *
+      *
+      *    Check that select was successful. If it wasn't then set the
+      *    COMMAREA return flags accordingly.
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *    If the SQLCODE is OK then update the row on ACCOUNT for
+      *    the FROM account.
+      *
+      *
+      *    If the RESP CODE was NOT OK then we need to indicate a
+      *    failure
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *    If the update to the FROM account was OK store the
+      *    updated balances away.
+      *
+      *
+      *    Position ourself at the matching account record
+      *    for the TO account
+      *
+      *
+      *    Check that SELECT was successful. If it wasn't then set the
+      *    return flags accordingly.
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *       If the TO account was not found
+      *
+      *
+      *             Preserve the RESP and RESP2, then set up the
+      *             standard ABEND info before getting the applid,
+      *             date/time etc. and linking to the Abend Handler
+      *             program.
+      *
+      *
+      *             Get supplemental information
+      *
+      *
+      *          If the failure isn't down to the row NOT being
+      *          found (it failed for some other reason)
+      *
+      *
+      *                      Preserve the RESP and RESP2, then set up
+      *                      the standard ABEND info before getting
+      *                      the applid, date/time etc. and link
+      *                      to the Abend Handler program.
+      *
+      *
+      *                      Get supplemental information
+      *
+      *
+      *             Preserve the RESP and RESP2, then set up the
+      *             standard ABEND info before getting the applid,
+      *             date/time etc. and linking to the Abend Handler
+      *             program.
+      *
+      *
+      *             Get supplemental information
+      *
+      *
+      *    If the SELECT was successful, then amend the account balances
+      *    and UPDATE the row back onto the ACCOUNT table.
+      *
+      *
+      *    If the RESP CODE was NOT OK then we need to abend
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *                   Preserve the RESP and RESP2, then set up the
+      *                   standard ABEND info before getting the applid,
+      *                   date/time etc. and linking to the Abend
+      *                   Handler program.
+      *
+      *
+      *                   Get supplemental information
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Store the data away
+      *
+      *
+      *    Writes details of the successful transfer to the
+      *    PROCTRAN (Processed Transaction) datastore.
+      *
+      *
+      *    Populate the time and date
+      *
+      *
+      *    Check the SQLCODE
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *    Check if the Sqlcode that is returned one that will
+      *    trigger Storm Drain is active in Workload
+      *
+      *
+      *    Deal with any abends
+      *
+      *
+      *    Evaluate the Abend code that is returned
+      *     - For DB2 AD2Z ... provide some diagnostics
+      *     - For VSAM RLS abends: AFCR, AFCS and AFCT record the
+      *    Abend as happening but do not abend ... leave this to
+      *    CPSM WLM "Storm drain" (Abend probability) to handle
+      *    If not a "storm drain" ... take the abend afterwards
+      *
+      *
+      *       DB2 AD2Z abend
+      *
+      *
+      *             Preserve the RESP and RESP2, then set up the
+      *             standard ABEND info before getting the applid,
+      *             date/time etc. and linking to the Abend Handler
+      *             program.
+      *
+      *
+      *             Get supplemental information
+      *
