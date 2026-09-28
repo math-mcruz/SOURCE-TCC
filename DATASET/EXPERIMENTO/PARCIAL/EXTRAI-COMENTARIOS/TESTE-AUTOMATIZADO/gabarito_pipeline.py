@@ -62,18 +62,18 @@ def testar_reconstrucao(arquivo_original, arquivo_codigo, arquivo_comentarios):
             ok = False
             break
         if linha_reconstruida != linha:
-            print(f"  DIVERGÊNCIA na linha {i} (esperado de {nome_fonte}):")
+            print(f"  DIVERGENCIA na linha {i} (esperado de {nome_fonte}):")
             print(f"    original:     {linha!r}")
-            print(f"    reconstruído: {linha_reconstruida!r}")
+            print(f"    reconstruido: {linha_reconstruida!r}")
             ok = False
 
     sobra_codigo = list(it_codigo)
     sobra_comentarios = list(it_comentarios)
     if sobra_codigo:
-        print(f"  SOBRARAM {len(sobra_codigo)} linhas não consumidas em {arquivo_codigo}")
+        print(f"  SOBRARAM {len(sobra_codigo)} linhas nao consumidas em {arquivo_codigo}")
         ok = False
     if sobra_comentarios:
-        print(f"  SOBRARAM {len(sobra_comentarios)} linhas não consumidas em {arquivo_comentarios}")
+        print(f"  SOBRARAM {len(sobra_comentarios)} linhas nao consumidas em {arquivo_comentarios}")
         ok = False
 
     return ok
@@ -83,15 +83,15 @@ def processar_programa(programa):
     print(f"=== {programa} ===")
     entrada = f'{programa}.cbl'
     if not os.path.isfile(entrada):
-        print(f"  PULADO: não encontrei {entrada} nesta pasta")
+        print(f"  PULADO: nao encontrei {entrada} nesta pasta")
         return None
 
     arquivo_original, arquivo_codigo, arquivo_comentarios = limpar_codigo_cobol(programa)
     print(f"  Gerados: {arquivo_codigo}, {arquivo_comentarios}")
 
     ok = testar_reconstrucao(arquivo_original, arquivo_codigo, arquivo_comentarios)
-    print("  RESULTADO: OK — reconstrução idêntica ao original" if ok
-          else "  RESULTADO: FALHOU — ver divergências acima")
+    print("  RESULTADO: OK - reconstrucao identica ao original" if ok
+          else "  RESULTADO: FALHOU - ver divergencias acima")
     return ok
 
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     print("=== RESUMO ===")
     for programa, ok in resumo.items():
         if ok is None:
-            status = "PULADO (arquivo .cbl não encontrado)"
+            status = "PULADO (arquivo .cbl nao encontrado)"
         elif ok:
             status = "OK"
         else:

@@ -1,0 +1,194 @@
+      ******************************************************************
+      *                                                                *
+      *  Copyright IBM Corp. 2023                                      *
+      *                                                                *
+      ******************************************************************
+      ******************************************************************
+      * This program will get called when someone pays some cash in to
+      * the bank over the counter or takes out some cash out over the
+      * counter.
+      *
+      * This program takes an account number and amount, it then
+      * accesses the DB2 datastore and retrieves the associated
+      * Account record and applies the amount and returns the
+      * updated actual amount and the available balance from the Account
+      * datastore.
+      *
+      * If the update is successfully applied to the Account then a
+      * record is written to the PROCTRAN (Processed Transaction)
+      * datastore.
+      *
+      * If the transaction cannot be successfullty applied to the
+      * Account datastore, because the account no longer exists
+      * (for example) then the SUCCESS flag is set to 'N' and a fail
+      * code gets written to the return data, for the calling routine
+      * to handle.
+      *
+      ******************************************************************
+      *SOURCE-COMPUTER.   IBM-370 WITH DEBUGGING MODE.
+      * Get the ACCOUNT DB2 copybook
+      * ACCOUNT Host variables for DB2
+      * PROCTRAN DB2 copybook
+      * PROCTRAN host variables for DB2
+      * Pull in the SQL COMMAREA
+      * 01 CUSTOMER-KY.
+      *    03 REQUIRED-SORT-CODE         PIC 9(6)      VALUE 0.
+      *    03 REQUIRED-ACC-NUM           PIC 9(8)      VALUE 0.
+      *
+      *    Set up some Abend handling
+      *
+      *
+      *    Determine what kind of ACCOUNT datastore we should
+      *    be accessing
+      *
+      *
+      *           Go and update the ACCOUNT record
+      *
+      *
+      *    The COMMAREA values have now been set so all we need to do
+      *    is finish
+      *
+      *
+      *    Retrieve the account information
+      *
+      *
+      *    Check that select was successful. If it wasn't then deal with
+      *    it
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *    Is the amount being requested a debit or a credit?
+      *    If it is a CREDIT (+) then we don't need to ensure that
+      *    the available balance has sufficient funds, because this
+      *    is money coming in.
+      *
+      *
+      *       The amount being requested is a DEBIT/Payment (-)
+      *       so we do need to check that the available
+      *       balance is sufficient to cover the amount being
+      *       asked for. If there are NOT sufficient funds the
+      *       request is denied so remove the record LOCK and
+      *       and finish.
+      *
+      *
+      *       Check to see whether the Payment is being
+      *       requested from a MORTGAGE or LOAN account. We only make
+      *       this check for PAYMENTs (we don't make this check for
+      *       requests via the Teller). How do we know it is a PAYMENT
+      *       as opposed to a Teller, this is determined by the
+      *       COMM-FACILTYPE(496 = NONE)
+      *       If it is a PAYMENT being requested from a MORTGAGE or
+      *       LOAN account then set an appropriate fail code (4)
+      *       and finish up.
+      *
+      *
+      *    Check to see whether a Credit is being
+      *    requested from a MORTGAGE or LOAN account. We only make
+      *    this check for requests via the PAYMENT link
+      *    (we don't make this check for
+      *    requests via the Teller). How do we know it is a PAYMENT
+      *    as opposed to a Teller, this is determined by the
+      *    COMM-FACILTYPE(496 = NONE)
+      *    If it is a PAYMENT credit being requested
+      *    from a MORTGAGE or LOAN
+      *    account then set an appropriate fail code (4), remove
+      *    the record lock and finish up.
+      *
+      *
+      *    If the SQLCODE from the SELECT is OK then update
+      *    the record and update the details on the
+      *    PROCTRAN (Processed transaction) datastore.
+      *
+      *
+      *    Update the account record
+      *
+      *
+      *    If the rewrite was successful then we need to pass back
+      *    the amended available balance and actual balance.
+      *
+      *
+      *    If the RESP CODE was NOT OK then we need to set flags
+      *    accordingly
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *    If the RESP CODE was normal then we need to write to the
+      *    PROCTRAN (processed transaction) datastore.
+      *
+      *
+      *          Write to the PROCTRAN datastore deatils regarding the
+      *          successfully applied transaction.
+      *
+      *
+      *    Populate the current time and date
+      *
+      *
+      *       If it is a debit from a PAYMENT
+      *
+      *
+      *       If it is a credit from a PAYMENT
+      *
+      *
+      *    Write a record to PROCTRAN
+      *
+      *
+      *    Check the SQLCODE
+      *
+      *
+      *       You need to issue a ROLLBACK to get rid of the updated
+      *       ACCOUNT record
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *       Check if SQLCODE indicates that Storm Drain processing
+      *       is applicable in a workload if activated
+      *
+      *
+      *       If the WRITE to PROCTRAN worked then it was a success
+      *
+      *
+      *    Check if the Sqclode that is returned one that will
+      *    trigger Storm Drain is active in Workload
+      *
+      *
+      * How ABENDs are dealt with
+      *
+      *
+      *    Evaluate the Abend code that is returned
+      *      - For DB2 AD2Z ... provide some diagnostics
+      *      - For VSAM RLS abends: AFCR, AFCS and AFCT record the
+      *        Abend as happening but do not abend ... leave this to
+      *        CPSM WLM "Storm drain" (Abend probability) to handle
+      *    If not a "storm drain" ... take the abend afterwards
+      *
+      *
+      *       DB2 AD2Z abend
+      *
+      *
+      *          VSAM RLS abends, subject to CPSM WLM Storm Drain check
+      *          if handled (as here) and Workload Abend Thresholds are
+      *          set.
+      *
+      *
+      *             Preserve the RESP and RESP2, then set up the
+      *             standard ABEND info before getting the applid,
+      *             date/time etc. and linking to the Abend Handler
+      *             program.
+      *
+      *
+      *             Get supplemental information
+      *
