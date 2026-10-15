@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-extrair_pares_gabarito.py
+monta_planilha.py
 
 Passo 2 do método (E4, seção 1.3): extração e filtragem dos pares
 comentário-código da CBSA, para revisão conjunta discente-orientador.
@@ -19,7 +19,7 @@ Procedimento (heurístico, somente leitura na origem):
 
 Uso (Windows):
   pip install openpyxl
-  python extrair_pares_gabarito.py --origem "...\\DATABASE\\ORIGINAL\\DATABASE\\cobol_src" --saida gabarito_candidatos.xlsx
+  python monta_planilha.py --origem "...\\DATABASE\\ORIGINAL\\DATABASE\\cobol_src" --saida gabarito_candidatos.xlsx
 
 Opcional: --programas DBCRFUN XFRFUN BNK1CRA BNK1TFN  (padrão: esses quatro)
 """
