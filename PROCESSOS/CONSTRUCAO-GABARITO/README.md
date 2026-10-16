@@ -2,16 +2,16 @@
 
 Scripts usados para construir o gabarito de regras de negócio a partir de quatro
 programas COBOL da CICS Bank Sample Application (CBSA). O gabarito é a referência
-contra a qual a documentação gerada pelos LLMs (Claude Sonnet 5.5 e GPT-5.5) será
+contra a qual a documentação gerada pelos LLMs (Claude Sonnet 5 e GPT-5.5) será
 comparada, conforme o Capítulo 4 da monografia.
 
 ## Base de dados
 
 - Repositório de origem: `ijmitch/cics-banking-sample-application-cbsa`,
   commit `e22475691524ef72a92ee77f7040233e098ab1b9`, pasta `src/base`.
-- Programas selecionados (seleção provisória, a validar com o orientador):
-  `DBCRFUN`, `XFRFUN`, `BNK1CRA`, `BNK1TFN`.
-- Pasta de origem (cópia sem edições do original) usada na extração: `EXPERIMENTO\COMPLETO\cobol_src`. 
+- Programas selecionados (confirmados com o orientador): `DBCRFUN`, `XFRFUN`,
+  `BNK1CRA`, `BNK1TFN`. Teste piloto com `DBCRFUN` e `BNK1CRA`.
+- Pasta de origem usada na extração: `<CONFIRMAR: ORIGINAL ou EXPERIMENTO\COMPLETO>\cobol_src`.
 - SHA-256 dos fontes processados (também registrados na aba Legenda da planilha):
 
 | Arquivo | SHA-256 |
@@ -25,7 +25,7 @@ Os números de linha da planilha referem-se a esses arquivos, com comentários.
 
 ## Ambiente
 
-- Windows, Python `3.14.2`, openpyxl 3.1.5.
+- Windows, Python `<PREENCHER: resultado de py --version>`, openpyxl 3.1.5.
 - Instalação: `py -m pip install openpyxl`.
 - Observação: neste ambiente, o comando `python` aponta para o Python embutido no
   GnuCOBOL (`C:\GnuCOBOL\bin\python.exe`), que não tem pip nem openpyxl. Usar `py`.
@@ -106,21 +106,43 @@ py migrar_revisao.py --antiga planilha_anterior.xlsx --nova gabarito_candidatos_
 - Cria a aba Migração com tudo o que mudou de situação, para conferência manual.
 - Não altera as planilhas de entrada.
 
+### 4. `gera_gabarito.py` — aba Gabarito (uma regra por linha)
+
+Gera a aba Gabarito a partir dos pares com Categoria "regra de negócio" e Status
+"Validado". Regras numeradas na coluna "Regra de negócio extraída" (1., 2., ...)
+viram linhas próprias, com ID `<par>.1`, `<par>.2`. Remove também alturas de linha
+fixas de todas as abas.
+
+```
+py gera_gabarito.py --entrada GABARITO_V5.xlsx --saida GABARITO_V5_gabarito.xlsx
+```
+
+Deve ser executado de novo sempre que a revisão mudar (por exemplo, após a
+decisão do orientador sobre os pares "a discutir"); a aba é recriada do zero.
+
 ## Revisão manual
 
 Feita na planilha, coluna a coluna (Regra de negócio extraída, Categoria, Status,
 Observação, ID atômico, Comentário defasado?).
 
-- **Regra de negócio:** decisão com semântica bancária, registrada como uma
-  condição e uma consequência por regra.
+- **Regra de negócio:** o que a área de negócio (gerente ou cliente do banco)
+  entende; detalhe de código fica fora (critério definido com o orientador).
+  Registrada como uma condição e uma consequência por regra.
+- **Sem comentário próprio (excluída):** regra que nenhum comentário descreve e que
+  caiu num par porque o extrator vai até o próximo comentário (decidido com o
+  orientador).
 - **Infraestrutura (excluída):** tratamento de erro padrão, que apareceria em
   qualquer outro programa COBOL (rollback, ABEND de DB2/VSAM, storm drain,
-  retentativa por deadlock). Proposta de refinamento, pendente de validação com o
-  orientador: a execução mecânica de acesso a dados (gravação, inserção,
-  atualização) e a montagem de registros também são infraestrutura; a decisão de
-  quando registrar uma transação, o que caracteriza seu sucesso e o cálculo dos
-  saldos permanecem regras de negócio.
-- **A discutir:** casos levados ao orientador.
+  retentativa por deadlock). Decidido com o orientador: também são
+  infraestrutura a falha técnica de DB2 (SQLCODE diferente de zero e de +100), a
+  gravação em PROCTRAN e a ordem de atualização das contas por número.
+- **Interface (excluída):** fluxo de teclas de função e de telas (decidido com o
+  orientador).
+- **A discutir:** casos levados ao orientador. A revisão do orientador é feita nas
+  reuniões semanais, e as decisões ficam registradas na pauta de cada reunião.
+- Regras afetadas por defeito do código, em que não é possível afirmar se vale a
+  intenção do programador ou o comportamento real, são retiradas do gabarito e
+  documentadas na Observação (decidido com o orientador).
 - Ocorrências repetidas no fonte são mantidas como entradas separadas.
 - Blocos descartados podem ser marcados como Reincluir; são anexados ao fim de
   Candidatos com Tipo `Reincluído`. Após a revisão dos descartados: 5 reincluídos,
