@@ -137,7 +137,8 @@ Observação, ID atômico, Comentário defasado?).
   infraestrutura a falha técnica de DB2 (SQLCODE diferente de zero e de +100), a
   gravação em PROCTRAN e a ordem de atualização das contas por número.
 - **Interface (excluída):** fluxo de teclas de função e de telas (decidido com o
-  orientador).
+  orientador) e validação de formato do campo digitado (aplicação do mesmo
+  critério).
 - **A discutir:** casos levados ao orientador. A revisão do orientador é feita nas
   reuniões semanais, e as decisões ficam registradas na pauta de cada reunião.
 - Regras afetadas por defeito do código, em que não é possível afirmar se vale a
