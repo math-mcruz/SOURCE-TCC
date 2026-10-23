@@ -1,0 +1,184 @@
+      ******************************************************************
+      *                                                                *
+      *  Copyright IBM Corp. 2023                                      *
+      *                                                                *
+      ******************************************************************
+      ******************************************************************
+      * This is the Create Account program. It verifies the input
+      * and assuming it passes verification, it links to the CREACC
+      * program to add it to the Account datastore.
+      *
+      ******************************************************************
+      *SOURCE-COMPUTER.   IBM-370 WITH DEBUGGING MODE.
+      *
+      * The end of session message
+      *
+      *
+      *       Is it the first time through? If so, send the map
+      *       with erased (empty) data fields.
+      *
+      *
+      *       If a PA key is pressed, just carry on
+      *
+      *
+      *       When Pf3 is pressed, return to the main menu
+      *
+      *
+      *       If the aid or Pf12 is pressed, then send a termination
+      *       message.
+      *
+      *
+      *       When CLEAR is pressed
+      *
+      *
+      *       When enter is pressed then process the content
+      *
+      *
+      *       When anything else happens, send the invalid key message
+      *
+      *
+      *     Having processed the input or processed the error check
+      *     to see if it is the first time through. If it is then
+      *     initialise the returned information. If it is not, set
+      *     the return information accordingly.
+      *
+      *
+      *         Preserve the RESP and RESP2, then set up the
+      *         standard ABEND info before getting the applid,
+      *         date/time etc. and linking to the Abend Handler
+      *         program.
+      *
+      *
+      *         Get supplemental information
+      *
+      *
+      *    Retrieve the data from the map
+      *
+      *
+      *    Validate the received data
+      *
+      *
+      *    If the data passes validation go on to
+      *    create an account
+      *
+      *
+      *    Output the data to the screen
+      *
+      *
+      *    Retrieve the data
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Perform validation on the incoming fields
+      *
+      *
+      *       So the idea here is that if there is a
+      *       decimal point, the field is not numeric. But if it
+      *       is 1.1 then it is valid. So first of all we check
+      *       to see that only the above chars are OK. We also
+      *       want to tolerate the minus and plus signs. We don't
+      *       support negative interest though. We tolerate
+      *       trailing spaces too.
+      *
+      *
+      *       And let's check to make sure we only have 0 to 1
+      *       decimal points
+      *
+      *
+      *       Now let's check to see if we have too many decimals!
+      *
+      *
+      *             There are more than 2 characters after the point
+      *
+      *
+      *                More than two of them are numeric
+      *
+      *
+      *    Validate the interest rate
+      *
+      * Remove trailing spaces from OVERDRAFT
+      *
+      *    If the overdraft limit hasn't been supplied then make it
+      *    zero
+      *
+      *
+      *    If the overdraft limit is supplied it must be numeric
+      *
+      *
+      *    Check to see if we have all the data we expected
+      *
+      *
+      *    Set up the fields required by CREACC then link to it
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Check to see if the creation was successful or not
+      *
+      *
+      *       If the account creation was successful then set
+      *       the values on the map
+      *
+      *
+      *    If the map needs to have its data erased
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    If the map just needs a resend of only the data
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    If we have elected to send the map and a beep
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    Send the termination message
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *

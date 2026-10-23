@@ -2,13 +2,13 @@
 Pipeline de limpeza de comentários COBOL + teste de reconstrução.
 
 Uso:
-    python gabarito_pipeline.py
+    python limpa_comentarios.py
         -> processa a lista padrão: DBCRFUN, XFRFUN, BNK1CRA, BNK1TFN
 
-    python gabarito_pipeline.py XFRFUN
+    python limpa_comentarios.py XFRFUN
         -> processa só o XFRFUN
 
-    python gabarito_pipeline.py XFRFUN BNK1CRA
+    python limpa_comentarios.py XFRFUN BNK1CRA
         -> processa só os que você listar
 
 Cada programa precisa ter o arquivo <PROGRAMA>.cbl na mesma pasta deste
