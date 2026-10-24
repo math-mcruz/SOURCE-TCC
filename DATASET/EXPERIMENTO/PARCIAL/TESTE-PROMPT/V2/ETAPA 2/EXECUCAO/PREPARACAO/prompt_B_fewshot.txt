@@ -1,0 +1,196 @@
+Papel: Analista de sistemas legados que documenta as regras de negócio de programas COBOL para a área de negócio de um banco.
+Tarefa: Ler o programa COBOL fornecido e listar as regras de negócio que ele implementa.
+Definição de regra de negócio: Tudo o que a área de negócio (gerente ou cliente do banco) entende. Detalhes de código que o pessoal de negócio não entenderia ficam de fora.
+
+O que não listar:
+- Tratamento de erro padrão e falhas técnicas de banco de dados ou de sistema (códigos de retorno, ABEND, rollback);
+- Gravação de registros técnicos, de log ou de auditoria;
+- Controle de concorrência e ordem técnica de atualização;
+- Navegação de tela e teclas de função;
+- Validação de formato do campo digitado: se o conteúdo é numérico, se há espaços no meio, se há mais de um ponto decimal, se o caractere de sinal é válido.
+
+O que listar, mesmo sendo checagem de campo:
+- A obrigatoriedade de um dado (o campo não pode ficar vazio);
+- Restrições sobre o valor em si (por exemplo: limites mínimos ou máximos, ou a lista de valores aceitos para um campo).
+Quando um mesmo teste cobre ausência e formato, a classificação segue o que o código testa: teste de tamanho zero ou de campo só com espaços é obrigatoriedade (listar); teste de valor numérico é formato (não listar), mesmo que a mensagem exibida peça para preencher o campo.
+
+Escopo: liste apenas regras que dependem de uma decisão no código (IF, EVALUATE ou teste de um código de retorno). Cada regra corresponde a um caminho dessa decisão. Não liste atribuições de valores, preparação de dados para gravação ou envio, nem exibição de dados, quando não houver uma decisão associada. Dentro de um mesmo caminho de decisão, não crie uma regra para cada campo atribuído ou exibido: descreva a consequência principal.
+
+Atomicidade: Uma regra por item, com uma condição e uma consequência. Uma regra composta deve ser separada em itens.
+Ocorrências repetidas: Se a mesma regra aparece em mais de um ponto do código, cada ocorrência é listada separadamente, com o seu parágrafo.
+Fidelidade: Listar só o que o código de fato implementa, e não o que seria esperado de um sistema bancário. Se o comportamento for ambíguo, dizer isso no item.
+Linguagem: Cada regra é uma frase em linguagem de negócio, em português. A frase pode citar entre parênteses o campo, a condição ou o código do programa que sustenta a regra (por exemplo, o nome do campo testado ou o valor de um código de retorno).
+
+Formato da resposta, sem nenhum texto antes ou depois da lista:
+1. Regra: <frase em linguagem de negócio>
+   Condição: <quando se aplica>
+   Consequência: <o que acontece>
+   Parágrafo: <nome do parágrafo ou seção COBOL>
+
+Para referência, veja abaixo dois exemplos de como executar a tarefa.
+
+Exemplo 1:
+
+Código:
+       PROCEDURE DIVISION.
+       PREMIERE SECTION.
+       A010.
+
+           MOVE SORTCODE TO COMM-SCODE
+                            DESIRED-SORT-CODE.
+
+           MOVE SPACES TO WS-UNSTR-TITLE.
+           UNSTRING COMM-NAME DELIMITED BY SPACE
+              INTO WS-UNSTR-TITLE.
+
+           MOVE ' ' TO WS-TITLE-VALID.
+
+           EVALUATE WS-UNSTR-TITLE
+              WHEN 'Professor'
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Mr       '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Mrs      '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Miss     '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Ms       '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Dr       '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Drs      '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Lord     '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Sir      '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN 'Lady     '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN '         '
+                 MOVE 'Y' TO WS-TITLE-VALID
+
+              WHEN OTHER
+                 MOVE 'N' TO WS-TITLE-VALID
+           END-EVALUATE.
+
+           IF WS-TITLE-VALID = 'N'
+             MOVE 'N' TO COMM-UPD-SUCCESS
+             MOVE 'T' TO COMM-UPD-FAIL-CD
+             GOBACK
+           END-IF
+
+           PERFORM UPDATE-CUSTOMER-VSAM
+           PERFORM GET-ME-OUT-OF-HERE.
+
+       A999.
+           EXIT.
+
+
+       UPDATE-CUSTOMER-VSAM SECTION.
+       UCV010.
+
+           MOVE COMM-CUSTNO TO DESIRED-CUSTNO.
+
+           EXEC CICS READ FILE('CUSTOMER')
+                RIDFLD(DESIRED-CUST-KEY)
+                INTO(WS-CUST-DATA)
+                UPDATE
+                RESP(WS-CICS-RESP)
+                RESP2(WS-CICS-RESP2)
+           END-EXEC.
+
+           IF WS-CICS-RESP NOT = DFHRESP(NORMAL)
+
+              MOVE 'N' TO COMM-UPD-SUCCESS
+
+              IF WS-CICS-RESP = DFHRESP(NOTFND)
+                 MOVE '1' TO COMM-UPD-FAIL-CD
+              ELSE
+                 MOVE '2' TO COMM-UPD-FAIL-CD
+              END-IF
+
+              GO TO UCV999
+
+           END-IF.
+
+Resposta esperada:
+1. Regra: Ao atualizar os dados do cliente, o título (primeira palavra do nome) deve ser um dos aceitos: Professor, Mr, Mrs, Miss, Ms, Dr, Drs, Lord, Sir ou Lady, ou pode ficar em branco. Com outro título, a atualização não é feita e é sinalizada como malsucedida com o código de falha 'T'.
+   Condição: a primeira palavra do nome informado não é um dos títulos aceitos nem está em branco
+   Consequência: a atualização não é feita; indicador de sucesso 'N' e código de falha 'T'
+   Parágrafo: A010 (PREMIERE SECTION)
+
+2. Regra: Se o cliente a ser atualizado não for encontrado (resposta NOTFND da leitura), a atualização é sinalizada como malsucedida com o código de falha '1'.
+   Condição: a leitura do registro do cliente retorna NOTFND
+   Consequência: indicador de sucesso 'N' e código de falha '1'
+   Parágrafo: UCV010 (UPDATE-CUSTOMER-VSAM)
+
+Exemplo 2:
+
+Código:
+       EDIT-DATA SECTION.
+       ED010.
+           IF ACCNOI NOT NUMERIC
+              MOVE 'Please enter an account number.   ' TO
+                 MESSAGEO
+              MOVE 'N' TO VALID-DATA-SW
+           END-IF.
+
+       ED999.
+           EXIT.
+
+
+       VALIDATE-DATA SECTION.
+       VD010.
+           IF ACTYPEI NOT = 'CURRENT ' AND
+           ACTYPEI NOT = 'SAVING  ' AND
+           ACTYPEI NOT = 'LOAN    ' AND
+           ACTYPEI NOT = 'MORTGAGE' AND
+           ACTYPEI NOT = 'ISA     '
+
+              MOVE SPACES TO MESSAGEO
+              STRING 'Account Type must be CURRENT, SAVING, LOAN, '
+                 'MORTGAGE or ISA' DELIMITED BY SIZE,
+                 '. Then press PF5.' DELIMITED BY SIZE
+              INTO MESSAGEO
+              MOVE -1 to ACTYPEL
+              MOVE 'N' TO VALID-DATA-SW
+           END-IF.
+
+           IF INTRTL = ZERO
+              MOVE SPACES TO MESSAGEO
+              STRING 'Please supply a numeric interest rate '
+                 'then press PF5.' DELIMITED BY SIZE
+                 INTO MESSAGEO
+              MOVE 'N' TO VALID-DATA-SW
+              MOVE -1 TO INTRTL
+              GO TO VD999
+           END-IF.
+
+Resposta esperada:
+1. Regra: Se o tipo de conta informado não for CURRENT, SAVING, LOAN, MORTGAGE ou ISA, a entrada é considerada inválida e é exibida a mensagem 'Account Type must be CURRENT, SAVING, LOAN, MORTGAGE or ISA. Then press PF5.'
+   Condição: tipo de conta diferente de CURRENT, SAVING, LOAN, MORTGAGE e ISA
+   Consequência: entrada inválida, com a mensagem indicada
+   Parágrafo: VD010 (VALIDATE-DATA)
+
+2. Regra: Se a taxa de juros não for informada (campo vazio), a entrada é considerada inválida e é exibida a mensagem 'Please supply a numeric interest rate then press PF5.'
+   Condição: campo de taxa de juros sem conteúdo (INTRTL igual a zero)
+   Consequência: entrada inválida, com a mensagem indicada; as demais validações não são feitas
+   Parágrafo: VD010 (VALIDATE-DATA)
+
+Abaixo encontra-se o código que você deve analisar agora.
+
+<codigo>
+{{CODIGO_COBOL}}
+</codigo>
+
+Lembrete: a resposta deve seguir estritamente o formato "1. Regra: ... Condição: ... Consequência: ... Parágrafo: ...", sem nenhum texto antes ou depois da lista final.
