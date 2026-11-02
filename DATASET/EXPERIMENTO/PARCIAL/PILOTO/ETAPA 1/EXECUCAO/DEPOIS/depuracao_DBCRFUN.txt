@@ -1,0 +1,2 @@
+      D       DISPLAY 'COMM-AMT IS negative'
+      D          DISPLAY 'insufficient funds!'

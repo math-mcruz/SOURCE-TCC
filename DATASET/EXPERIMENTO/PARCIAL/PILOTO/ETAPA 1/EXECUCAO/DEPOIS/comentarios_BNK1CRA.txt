@@ -1,0 +1,175 @@
+      ******************************************************************
+      *                                                                *
+      *  Copyright IBM Corp. 2023                                      *
+      *                                                                *
+      ******************************************************************
+      ******************************************************************
+      * This is the Credit/Debit program in the BANKING application
+      * BMS suite.
+      *
+      ******************************************************************
+      *SOURCE-COMPUTER.   IBM-370 WITH DEBUGGING MODE.
+      *
+      * The end of session message
+      *
+      *
+      *       Is it the first time through? If so, send the map
+      *       with erased (empty) data fields.
+      *
+      *
+      *       If a PA key is pressed, just carry on
+      *
+      *
+      *       When Pf3 is pressed, return to the main menu
+      *
+      *
+      *       If the aid or Pf12 is pressed, then send a termination
+      *       message.
+      *
+      *
+      *       When CLEAR is pressed
+      *
+      *
+      *       When enter is pressed then process the content
+      *
+      *
+      *       When anything else happens, send the invalid key message
+      *
+      *
+      *    Provided that we have been around this way before
+      *    (i.e. it is NOT the first time through, put the data
+      *    returned from the sub program into the area that we use
+      *    as the COMMAREA on the RETURN.
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Retrieve the data from the map
+      *
+      *
+      *    Validate the received data
+      *
+      *
+      *    If the data passes validation go on to apply the debit or
+      *    credit.
+      *
+      *
+      *    Output the data to the screen
+      *
+      *
+      *    Retrieve the data
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Perform validation on the incoming fields
+      *
+      *
+      *    Validate the Amount entered
+      *
+      *
+      *    Set up the COMMAREA fields required by DBCRFUN and then
+      *    link to it.
+      *
+      *
+      *    Provide the correct Amount
+      *
+      *
+      *    Get the ORIGIN data
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    Check to see if the debit or credit was successful
+      *
+      *
+      *    Set up the values on the map
+      *
+      *
+      *    If the map needs to have its data erased
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    If the map just needs a resend of only the data
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    If we have elected to send the map and a beep
+      *
+      *
+      *          Preserve the RESP and RESP2, then set up the
+      *          standard ABEND info before getting the applid,
+      *          date/time etc. and linking to the Abend Handler
+      *          program.
+      *
+      *
+      *          Get supplemental information
+      *
+      *
+      *    Send the termination message
+      *
+      *
+      *       Preserve the RESP and RESP2, then set up the
+      *       standard ABEND info before getting the applid,
+      *       date/time etc. and linking to the Abend Handler
+      *       program.
+      *
+      *
+      *       Get supplemental information
+      *
+      *
+      *    It is entirely spaces
+      *
+      *
+      *       If there is a decimal point, the field is not numeric.
+      *       But if it is 1.1 then it is valid. So first of all
+      *       we check to see that only the above chars are
+      *       valid.
+      *       We DO NOT tolerate embedded spaces too
+      *
+      *
+      *    Check that we have no or just one decimal point
+      *
+      *
+      *    Have we got too many decimals?
+      *
+      *
+      *             There are two numerics
+      *
