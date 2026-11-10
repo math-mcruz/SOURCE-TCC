@@ -1,0 +1,2 @@
+# Preparação das entradas
+
