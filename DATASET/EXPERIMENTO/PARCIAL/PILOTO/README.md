@@ -1,14 +1,12 @@
-# Regras de contagem da comparação&#32;
+# Regras de contagem da comparação
 
 ## Para que serve
 
-Define como cada item de uma resposta vira número na comparação com o gabarito. As regras ficam fixas antes do piloto, e só o discente classifica os itens.
+Define como cada item de uma resposta vira número na comparação com o gabarito e como cada regra do gabarito recebe o seu nível de complexidade. As regras ficam fixas antes do piloto, e só o discente classifica os itens.
 
 ## As quatro categorias
 
-Cada item da resposta passa por três perguntas, sempre nesta ordem, e recebe uma única categoria. Três categorias já estão na seção 4.4 do Método; a única nova é "fora do escopo".
-
-&#91;embedded content: classificação de um item · 3 perguntas, 4 categorias\]
+Cada item da resposta passa por três perguntas, sempre nesta ordem, e recebe uma única categoria. Três categorias já estavam no Método da monografia; a única nova é "fora do escopo".
 
 | Categoria | O que significa | Exemplo |
 | --- | --- | --- |
@@ -28,8 +26,8 @@ Como responder cada pergunta:
 Todas saem das categorias. Itens fora do escopo não entram em nenhuma conta.
 
 - **Precisão:** quanto do que o modelo disse está certo. (reformulação + enriquecimento) ÷ (reformulação + enriquecimento + alucinação).
-- **Cobertura** (revocação, ou *recall*): quanto do gabarito o modelo encontrou. Regras do gabarito encontradas ÷ total de regras do gabarito.
-- **F1:** junta precisão e cobertura num número só. 2 × precisão × cobertura ÷ (precisão + cobertura).
+- **Revocação** (*recall*; na planilha aparece como "cobertura"): quanto do gabarito o modelo encontrou. Regras do gabarito encontradas ÷ total de regras do gabarito.
+- **F1:** junta precisão e revocação num número só. 2 × precisão × revocação ÷ (precisão + revocação).
 - **Taxa de alucinação:** alucinações ÷ (reformulação + enriquecimento + alucinação). É o complemento da precisão: precisão de 80% significa alucinação de 20%.
 
 Exemplo: o DBCRFUN tem 9 regras no gabarito, e o modelo devolve 10 itens.
@@ -42,11 +40,27 @@ Exemplo: o DBCRFUN tem 9 regras no gabarito, e o modelo devolve 10 itens.
 | Fora do escopo | 2 |
 
 - Precisão = (6 + 1) ÷ (6 + 1 + 1) = 87,5%
-- Cobertura = 6 ÷ 9 = 66,7%
+- Revocação = 6 ÷ 9 = 66,7%
 - F1 = 2 × 0,875 × 0,667 ÷ (0,875 + 0,667) = 75,7%
 - Taxa de alucinação = 1 ÷ 8 = 12,5%
 
-Para os Resultados, os itens dos 4 programas são somados em cada execução de um modelo com uma estratégia, e o número final é a média das 3 repetições.
+Para os Resultados, os itens dos 4 programas são somados em cada execução de um modelo com uma estratégia, e o número final é a média das 3 repetições, com o mínimo e o máximo. Uma diferença entre modelos só é considerada relevante quando é maior que essa variação.
+
+## Nível de complexidade
+
+Para relacionar alucinação e complexidade, cada uma das 37 regras do gabarito recebe um nível na aba Regras da planilha, antes de abrir qualquer resposta. O nível segue o que a condição da regra exige.
+
+| Nível | Quando |
+| --- | --- |
+| Linear | A condição depende de um único teste (um IF ou um WHEN), sem GO TO no caminho até o teste |
+| Não linear | A condição depende de dois ou mais testes combinados (IF dentro de IF, AND/OR, WHEN dentro de IF) ou há um GO TO no caminho até o teste |
+
+Casos definidos:
+
+- O GO TO que apenas encerra a seção depois da mensagem ou da consequência (ex.: GO TO VD999, comum nas telas) não altera o nível.
+- As regras procedurais DBCRFUN-010, XFRFUN-036 e XFRFUN-051 não têm IF no próprio trecho e só são executadas quando os testes anteriores passam: são Não linear.
+- A reformulação herda o nível da regra do gabarito. Alucinação e enriquecimento recebem o nível do trecho a que se referem, pelo mesmo critério; fica em branco quando o item não corresponde a nenhum trecho do código.
+- Com 37 regras, a análise por nível é exploratória.
 
 ## Antes de classificar
 
@@ -62,8 +76,9 @@ Quando uma destas situações aparecer, anotar na coluna de observações da pla
 | Situação | O que fazer |
 | --- | --- |
 | Item sem condição ou sem consequência ("o programa valida a conta") | Não é uma regra completa: na planilha, categoria "Fora do escopo", com a observação "incompleto" |
+| Item que corresponde a uma regra retirada do gabarito por dúvida sobre o comportamento do código (ex.: BNK1CRA-040) | Não dá para dizer se está certo: categoria "Fora do escopo", com a observação "regra retirada por dúvida"; não entra em nenhuma métrica |
 | Mesma regra repetida na resposta | Conta uma vez: a cópia não ganha linha na planilha; anotar na observação do primeiro item |
 | Um item cobre duas regras do gabarito | Vira duas linhas na planilha (ex.: 3a e 3b), uma para cada regra, e cada parte é classificada sozinha |
-| Dois itens cobrem a mesma regra do gabarito | A regra conta uma vez na cobertura; cada item certo conta na precisão |
+| Dois itens cobrem a mesma regra do gabarito | A regra conta uma vez na revocação; cada item certo conta na precisão |
 | Regra que aparece em dois lugares do código (o gabarito as separa) | Um item genérico cobre só uma; para cobrir as duas, o modelo precisa citar as duas |
 | O modelo está certo e o gabarito está errado | Vale o código: corrigir o gabarito numa nova versão e anotar o motivo |
