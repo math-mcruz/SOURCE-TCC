@@ -1,0 +1,2 @@
+      D    DISPLAY 'There are ' ws-num-count-total ' leading spaces'
+      D          DISPLAY 'WS-NUM-COUNT-TOTAL IS ' WS-NUM-COUNT-TOTAL
